@@ -1,0 +1,14 @@
+<link rel="stylesheet" type="text/css" href="/sp_rating/rating.css" media="screen"/>
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">google.load("jquery", "1.2.6");</script>
+<script type="text/javascript" src="/sp_rating/rating.js"></script>
+<?php 
+function rating_form($table){
+echo "<div class='rating_wrapper'>";
+include("rating.php"); 
+echo "</div>\r";
+}
+
+
+
+?>

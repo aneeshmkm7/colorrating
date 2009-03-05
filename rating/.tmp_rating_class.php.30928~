@@ -1,0 +1,61 @@
+<?php
+class rating{
+
+	public $average = 0;
+	public $votes;
+	public $status;
+	public $table;
+	private $path;
+	
+	function __construct($table){
+		try{
+			$pathinfo = pathinfo(__FILE__);
+			$this->path = realpath($pathinfo['dirname']) . "/database/ratings.sqlite";
+			$dbh = new PDO("sqlite:$this->path");
+			$this->table = $dbh->quote($table);
+			// check if table needs to be created
+			$table_check = $dbh->query("SELECT * FROM $this->table WHERE id='1'");
+			if(!$table_check){
+				// create database table
+				$dbh->query("CREATE TABLE $this->table (id INTEGER PRIMARY KEY, rating FLOAT(3,2), ip VARCHAR(15))");
+				$dbh->query("INSERT INTO $this->table (rating, ip) VALUES (0, 'master')");				
+			} else {
+				$this->average = $table_check->fetchColumn(1);
+			}
+			$this->votes = ($dbh->query("SELECT COUNT(*) FROM $this->table")->fetchColumn()-1);
+		}catch( PDOException $exception ){
+				die($exception->getMessage());
+		}
+		$dbh = NULL;		
+	}
+
+	function set_score($score, $ip){
+		try{
+			$dbh = new PDO("sqlite:$this->path");
+			$voted = $dbh->query("SELECT id FROM $this->table WHERE ip='$ip'");
+			if(sizeof($voted->fetchAll())==0){
+				
+				$dbh->query("INSERT INTO $this->table (rating, ip) VALUES ($score, '$ip')");
+				$this->votes++;
+				
+				//cache average in the master row
+				$statement = $dbh->query("SELECT rating FROM $this->table");
+				$total = $quantity = 0;
+				$row = $statement->fetch(); //skip the master row
+				while($row = $statement->fetch()){
+					$total = $total + $row[0];
+					$quantity++;
+				}
+				$this->average = round((($total*20)/$quantity),0);
+				$statement = $dbh->query("UPDATE $this->table SET rating = $this->average WHERE id=1");
+				$this->status = '(thanks!)';
+			} else {
+				$this->status = '(already scored)';
+			}
+			
+		}catch( PDOException $exception ){
+				die($exception->getMessage());
+		}
+		$dbh = NULL;
+	}
+}

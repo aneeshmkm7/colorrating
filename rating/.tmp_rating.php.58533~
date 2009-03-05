@@ -1,0 +1,36 @@
+<?php
+include_once("rating_class.php");
+
+$ip = $_SERVER["REMOTE_ADDR"];
+//$ip = rand(10000,99999);
+if(!isset($table) && isset($_GET['table'])){
+	$table = $_GET['table'];
+}
+$rating = new rating($table);
+$status = "<div class='score'>
+			<a class='score1' href='?score=1&amp;table=$table&amp;user=$ip'>1</a>
+			<a class='score2' href='?score=2&amp;table=$table&amp;user=$ip'>2</a>
+			<a class='score3' href='?score=3&amp;table=$table&amp;user=$ip'>3</a>
+			<a class='score4' href='?score=4&amp;table=$table&amp;user=$ip'>4</a>
+			<a class='score5' href='?score=5&amp;table=$table&amp;user=$ip'>5</a>
+		</div>
+";
+
+if(isset($_GET['score'])){
+	$score = $_GET['score'];
+	if(is_numeric($score) && $score <=5 && $score >=1 && ($table==$_GET['table']) && isset($_GET["user"]) && $ip==$_GET["user"]){
+		$rating->set_score($score, $ip);
+		$status = $rating->status;
+	}
+}
+
+?>
+
+    <div class="sp_rating">
+    <div class="rating">Rating:</div>
+    <div class="base"><div class="average" style="width:<?php echo $rating->average; ?>%"><?php echo $rating->average; ?></div></div>
+    <div class="votes"><?php echo $rating->votes; ?> votes</div>
+    <div class="status">
+		<?php echo $status; ?>
+    </div>
+    </div>
